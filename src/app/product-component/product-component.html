@@ -1,0 +1,42 @@
+<div class="container">
+
+  <div class="display-4 text-center">Cadastro de Produto</div>
+
+  <form [formGroup]="formGroupProduct">
+   <div class="mb-3">
+      <label for="inputName" class="form-label">Nome</label>
+      <input formControlName="name"  type="text" class="form-control" id="inputName">
+    </div>
+
+    <div class="mb-3">
+      <label for="inputDescription" class="form-label">Descrição</label>
+      <input formControlName="description" type="text" class="form-control" id="inputDescription">
+    </div>
+
+    <div class="mb-3">
+      <label for="inputPrice" class="form-label">Preço</label>
+      <input formControlName="price"   type="text" class="form-control" id="inputPrice">
+    </div>
+
+    <button type="submit" class="btn btn-primary" (click)="save()"> Salvar</button>
+  </form>
+
+  Total de produtos: {{products.length}}
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Nome</th>
+      <th scope="col">Descrição</th>
+      <th scope="col">Preço</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of products">
+      <td>{{p.name}}</td>
+      <td>{{p.description}}</td>
+      <td>{{p.price}}</td>
+    </tr>
+   </tbody>
+</table>
+</div>
