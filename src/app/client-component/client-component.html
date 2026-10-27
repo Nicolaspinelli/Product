@@ -1,0 +1,138 @@
+<main class="clients-page">
+	<section class="page-heading" aria-labelledby="page-title">
+		<p class="eyebrow">ÁREA DE CLIENTES</p>
+		<h1 id="page-title">Cadastro de clientes</h1>
+		<p>Preencha as informações abaixo para criar um novo cadastro.</p>
+	</section>
+
+	<section class="form-card" aria-labelledby="form-title">
+		<div class="card-heading">
+			<div>
+				<h2 id="form-title">Dados do cliente</h2>
+				<p>Os campos marcados com <span aria-hidden="true">*</span> são obrigatórios.</p>
+			</div>
+			<span class="step-badge" aria-hidden="true">01</span>
+		</div>
+
+		<form [formGroup]="registrationForm" (ngSubmit)="registerClient()" novalidate>
+			<div class="form-grid">
+				<div class="field field-wide">
+					<label for="fullName">Nome completo <span aria-hidden="true">*</span></label>
+					<input id="fullName" type="text" formControlName="fullName" autocomplete="name"
+						placeholder="Ex.: Maria da Silva" [attr.aria-invalid]="registrationForm.controls.fullName.touched && registrationForm.controls.fullName.invalid"
+						aria-describedby="fullName-error">
+					@if (registrationForm.controls.fullName.touched && registrationForm.controls.fullName.hasError('required')) {
+						<span class="field-error" id="fullName-error">Informe o nome completo.</span>
+					}
+				</div>
+
+				<div class="field">
+					<label for="email">E-mail <span aria-hidden="true">*</span></label>
+					<input id="email" type="email" formControlName="email" autocomplete="email"
+						placeholder="voce@exemplo.com" [attr.aria-invalid]="registrationForm.controls.email.touched && registrationForm.controls.email.invalid"
+						aria-describedby="email-error">
+					@if (registrationForm.controls.email.touched && registrationForm.controls.email.invalid) {
+						<span class="field-error" id="email-error">
+							{{ registrationForm.controls.email.hasError('required') ? 'Informe o e-mail.' : 'Digite um e-mail válido.' }}
+						</span>
+					}
+				</div>
+
+				<div class="field">
+					<label for="phone">Telefone <span aria-hidden="true">*</span></label>
+					<input id="phone" type="tel" formControlName="phone" autocomplete="tel"
+						placeholder="(11) 99999-9999" [attr.aria-invalid]="registrationForm.controls.phone.touched && registrationForm.controls.phone.invalid"
+						aria-describedby="phone-error">
+					@if (registrationForm.controls.phone.touched && registrationForm.controls.phone.invalid) {
+						<span class="field-error" id="phone-error">Informe o telefone.</span>
+					}
+				</div>
+
+				<div class="field">
+					<label for="birthDate">Data de nascimento <span aria-hidden="true">*</span></label>
+					<input id="birthDate" type="date" formControlName="birthDate" autocomplete="bday"
+						[attr.aria-invalid]="registrationForm.controls.birthDate.touched && registrationForm.controls.birthDate.invalid"
+						aria-describedby="birthDate-error">
+					@if (registrationForm.controls.birthDate.touched && registrationForm.controls.birthDate.invalid) {
+						<span class="field-error" id="birthDate-error">Informe a data de nascimento.</span>
+					}
+				</div>
+
+				<fieldset class="field choice-field">
+					<legend>Preferência de contato <span aria-hidden="true">*</span></legend>
+					<div class="choice-list">
+						@for (preference of contactPreferences; track preference.value) {
+							<label class="choice-option">
+								<input type="radio" formControlName="contactPreference" [value]="preference.value">
+								<span>{{ preference.label }}</span>
+							</label>
+						}
+					</div>
+					@if (registrationForm.controls.contactPreference.touched && registrationForm.controls.contactPreference.invalid) {
+						<span class="field-error">Escolha uma preferência de contato.</span>
+					}
+				</fieldset>
+
+				<div class="field">
+					<label for="customerType">Tipo de cliente <span aria-hidden="true">*</span></label>
+					<select id="customerType" formControlName="customerType"
+						[attr.aria-invalid]="registrationForm.controls.customerType.touched && registrationForm.controls.customerType.invalid"
+						aria-describedby="customerType-error">
+						<option value="" disabled>Selecione uma opção</option>
+						@for (type of customerTypes; track type.value) {
+							<option [value]="type.value">{{ type.label }}</option>
+						}
+					</select>
+					@if (registrationForm.controls.customerType.touched && registrationForm.controls.customerType.invalid) {
+						<span class="field-error" id="customerType-error">Selecione o tipo de cliente.</span>
+					}
+				</div>
+
+				<div class="field field-wide consent-field">
+					<label class="choice-option consent-option" for="privacyConsent">
+						<input id="privacyConsent" type="checkbox" formControlName="privacyConsent"
+							[attr.aria-invalid]="registrationForm.controls.privacyConsent.touched && registrationForm.controls.privacyConsent.invalid"
+							aria-describedby="privacy-error">
+						<span>Autorizo o uso dos meus dados para a gestão deste cadastro. <span aria-hidden="true">*</span></span>
+					</label>
+					@if (registrationForm.controls.privacyConsent.touched && registrationForm.controls.privacyConsent.invalid) {
+						<span class="field-error" id="privacy-error">É necessário autorizar o uso dos dados para continuar.</span>
+					}
+				</div>
+			</div>
+
+			<div class="form-actions">
+				<p class="required-note"><span aria-hidden="true">*</span> Campos obrigatórios</p>
+				<button type="submit">Cadastrar cliente <span aria-hidden="true">→</span></button>
+			</div>
+		</form>
+	</section>
+
+	@if (successMessage()) {
+		<p class="success-message" role="status">{{ successMessage() }}</p>
+	}
+
+	@if (clients().length > 0) {
+		<section class="clients-list" aria-labelledby="clients-title">
+			<div class="list-heading">
+				<div>
+					<p class="eyebrow">REGISTROS</p>
+					<h2 id="clients-title">Clientes cadastrados</h2>
+				</div>
+				<span class="client-count">{{ clients().length }} {{ clients().length === 1 ? 'cliente' : 'clientes' }}</span>
+			</div>
+			<div class="client-grid">
+				@for (client of clients(); track $index) {
+					<article class="client-card">
+						<div class="client-avatar" aria-hidden="true">{{ client.fullName.charAt(0).toUpperCase() }}</div>
+						<div class="client-details">
+							<h3>{{ client.fullName }}</h3>
+							<p>{{ client.email }}</p>
+							<p>{{ client.phone }} · {{ client.customerType }}</p>
+						</div>
+					</article>
+				}
+			</div>
+		</section>
+	}
+</main>
