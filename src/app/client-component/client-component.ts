@@ -1,37 +1,31 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-
-interface ClientRecord {
-  fullName: string;
-  email: string;
-  phone: string;
-  birthDate: string;
-  contactPreference: string;
-  customerType: string;
-  privacyConsent: boolean;
-}
+import { Client } from '../models/client';
+import { ClientService } from '../client-service';
 
 @Component({
   selector: 'app-client-component',
   standalone: false,
   templateUrl: './client-component.html',
-  styleUrl: './client-component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './client-component.css'
 })
-export class ClientComponent {
+export class ClientComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
+  private readonly clientService = inject(ClientService);
 
-  readonly clients = signal<ClientRecord[]>([]);
-  readonly successMessage = signal('');
   readonly contactPreferences = [
-    { label: 'WhatsApp', value: 'WhatsApp' },
-    { label: 'E-mail', value: 'E-mail' },
-    { label: 'Telefone', value: 'Telefone' },
+    { value: 'WhatsApp', label: 'WhatsApp' },
+    { value: 'E-mail', label: 'E-mail' },
+    { value: 'Telefone', label: 'Telefone' },
   ];
+
   readonly customerTypes = [
-    { label: 'Pessoa física', value: 'Pessoa física' },
-    { label: 'Pessoa jurídica', value: 'Pessoa jurídica' },
+    { value: 'Pessoa física', label: 'Pessoa física' },
+    { value: 'Pessoa jurídica', label: 'Pessoa jurídica' },
   ];
+
+  readonly clients = signal<Client[]>([]);
+  readonly successMessage = signal('');
 
   readonly registrationForm = this.formBuilder.nonNullable.group({
     fullName: ['', Validators.required],
@@ -43,6 +37,12 @@ export class ClientComponent {
     privacyConsent: [false, Validators.requiredTrue],
   });
 
+  ngOnInit(): void {
+    this.clientService.getAllClients().subscribe({
+      next: (clients) => this.clients.set(clients),
+    });
+  }
+
   registerClient(): void {
     if (this.registrationForm.invalid) {
       this.registrationForm.markAllAsTouched();
@@ -50,9 +50,13 @@ export class ClientComponent {
       return;
     }
 
-    const client = this.registrationForm.getRawValue();
-    this.clients.update((currentClients) => [client, ...currentClients]);
-    this.successMessage.set(`Cadastro de ${client.fullName} realizado com sucesso.`);
-    this.registrationForm.reset();
+    const client: Client = this.registrationForm.getRawValue();
+    this.clientService.save(client).subscribe({
+      next: (savedClient) => {
+        this.clients.update((clients) => [...clients, savedClient]);
+        this.successMessage.set(`Cliente ${savedClient.fullName} cadastrado com sucesso.`);
+        this.registrationForm.reset();
+      },
+    });
   }
 }
