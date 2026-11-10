@@ -18,4 +18,13 @@ export class ProductService {
   save(product: Product): Observable<Product>{
     return this.http.post<Product>(this.apiUrl, product);
   }
+
+   // HTTP DELETE: http://localhost:3000/products/6
+  delete(product: Product): Observable<void>{
+    return this.http.delete<void>(`${this.apiUrl}/${product.id}`);
+ }
+
+ update(product: Product): Observable<Product>{
+    return this.http.put<Product>(`${this.apiUrl}/${product.id}`, product);
+}
 }

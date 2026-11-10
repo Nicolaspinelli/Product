@@ -14,6 +14,7 @@ import { Observable } from 'rxjs';
 
   products = signal<Product[]>([]);
   formGroupProduct: FormGroup;
+  isEditing: boolean = false;
 
 
 
@@ -45,4 +46,28 @@ import { Observable } from 'rxjs';
      }
     );
  }
+  delete(product: Product) {
+    this.service.delete(product).subscribe(
+      {
+        next: () => {
+          this.products.update(products => products.filter(p => p.id !== product.id));
+        }
+      }
+    )
+  }
+     onClickUpdate(product: Product) {
+      this.formGroupProduct.setValue(product);
+      this.isEditing = true;
+  }
+     update() {
+     this.service.update(this.formGroupProduct.value).subscribe(
+        {
+          next: json => {
+            this.products.update(products => products.map(p => p.id === json.id ? json : p));
+            this.isEditing = false;
+            this.formGroupProduct.reset();
+          }
+        }
+      )
+  }
 }
