@@ -4,18 +4,27 @@ import { Observable } from 'rxjs';
 import { Client } from './models/client';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ClientService {
-  private readonly apiUrl = 'http://localhost:3000/clients';
+  apiUrl = "http://localhost:3000/clients";
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getAllClients(): Observable<Client[]> {
+  getAllClients(): Observable<Client[]>{
     return this.http.get<Client[]>(this.apiUrl);
   }
 
-  save(client: Client): Observable<Client> {
+  save(client: Client): Observable<Client>{
     return this.http.post<Client>(this.apiUrl, client);
   }
+
+   // HTTP DELETE: http://localhost:3000/clients/6
+  delete(client: Client): Observable<void>{
+    return this.http.delete<void>(`${this.apiUrl}/${client.id}`);
+ }
+
+ update(client: Client): Observable<Client>{
+    return this.http.put<Client>(`${this.apiUrl}/${client.id}`, client);
+}
 }

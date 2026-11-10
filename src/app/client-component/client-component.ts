@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Client } from '../models/client';
 import { ClientService } from '../client-service';
 
@@ -10,53 +10,62 @@ import { ClientService } from '../client-service';
   styleUrl: './client-component.css'
 })
 export class ClientComponent implements OnInit {
-  private readonly formBuilder = inject(FormBuilder);
-  private readonly clientService = inject(ClientService);
+  isEditing: boolean = false;
+  clients = signal<Client[]>([]);
+  formGroupClient: FormGroup;
 
-  readonly contactPreferences = [
-    { value: 'WhatsApp', label: 'WhatsApp' },
-    { value: 'E-mail', label: 'E-mail' },
-    { value: 'Telefone', label: 'Telefone' },
-  ];
+  constructor(private formBuilder: FormBuilder, private service: ClientService) {
 
-  readonly customerTypes = [
-    { value: 'Pessoa física', label: 'Pessoa física' },
-    { value: 'Pessoa jurídica', label: 'Pessoa jurídica' },
-  ];
-
-  readonly clients = signal<Client[]>([]);
-  readonly successMessage = signal('');
-
-  readonly registrationForm = this.formBuilder.nonNullable.group({
-    fullName: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    phone: ['', Validators.required],
-    birthDate: ['', Validators.required],
-    contactPreference: ['', Validators.required],
-    customerType: ['', Validators.required],
-    privacyConsent: [false, Validators.requiredTrue],
-  });
-
+      this.formGroupClient = formBuilder.group({
+        id: [''],
+        fullName: [''],
+        email: [''],
+        phone: [''],
+        birthDate:   [''],
+        contactPreference:   [''],
+        customerType:   [''],
+        privacyConsent:   ['']
+      });
+  }
   ngOnInit(): void {
-    this.clientService.getAllClients().subscribe({
+    this.service.getAllClients().subscribe({
       next: (clients) => this.clients.set(clients),
     });
   }
+  save(){
+    this.service.save(this.formGroupClient.value).subscribe(
+     {
+       next: json => {
+          this.clients.update(clients => [...clients, json]);
+          this.formGroupClient.reset();
+       }
+     }
+    );
+ }
 
-  registerClient(): void {
-    if (this.registrationForm.invalid) {
-      this.registrationForm.markAllAsTouched();
-      this.successMessage.set('');
-      return;
-    }
+  delete(client: Client) {
+        this.service.delete(client).subscribe(
+          {
+            next: () => {
+              this.clients.update(clients => clients.filter(c => c.id !== client.id));
+            }
+          }
+        )
+      }
+onClickUpdate(client: Client) {
+      this.formGroupClient.setValue(client);
+      this.isEditing = true;
+  }
 
-    const client: Client = this.registrationForm.getRawValue();
-    this.clientService.save(client).subscribe({
-      next: (savedClient) => {
-        this.clients.update((clients) => [...clients, savedClient]);
-        this.successMessage.set(`Cliente ${savedClient.fullName} cadastrado com sucesso.`);
-        this.registrationForm.reset();
-      },
-    });
+  update() {
+     this.service.update(this.formGroupClient.getRawValue()).subscribe(
+        {
+          next: json => {
+            this.clients.update(clients => clients.map(c => c.id === json.id ? json : c));
+            this.isEditing = false;
+            this.formGroupClient.reset();
+          }
+        }
+      )
   }
 }
